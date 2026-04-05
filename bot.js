@@ -1,7 +1,7 @@
 require("dotenv").config()
 
 const { Client, LocalAuth } = require("whatsapp-web.js")
-const qrcode = require("qrcode-terminal")
+const qrcode = require("qrcode")
 const Groq = require("groq-sdk")
 const axios = require("axios")
 const cheerio = require("cheerio")
@@ -27,7 +27,7 @@ const client = new Client({
 });
 
 // Show QR code first time
-const qrcode = require("qrcode");
+
 
 client.on("qr", async (qr) => {
   console.log("QR received. Open this link to scan:");
