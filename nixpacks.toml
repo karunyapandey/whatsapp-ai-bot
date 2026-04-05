@@ -1,0 +1,20 @@
+[phases.setup]
+nixPkgs = [
+  "chromium",
+  "glib",
+  "nss",
+  "atk",
+  "gtk3",
+  "libdrm",
+  "libxkbcommon",
+  "pango",
+  "cairo",
+  "cups",
+  "alsa-lib"
+]
+
+[phases.build]
+cmds = ["npm install"]
+
+[start]
+cmd = "node bot.js"
