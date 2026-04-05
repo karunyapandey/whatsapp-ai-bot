@@ -27,10 +27,14 @@ const client = new Client({
 });
 
 // Show QR code first time
-client.on("qr", (qr) => {
-  console.log("Scan this QR code with WhatsApp")
-  qrcode.generate(qr, { small: true })
-})
+const qrcode = require("qrcode");
+
+client.on("qr", async (qr) => {
+  console.log("QR received. Open this link to scan:");
+
+  const qrUrl = await qrcode.toDataURL(qr);
+  console.log(qrUrl);
+});
 
 // When bot is ready
 client.on("ready", () => {
