@@ -1,40 +1,72 @@
 require("dotenv").config()
 
+const express = require("express")
 const { Client, LocalAuth } = require("whatsapp-web.js")
-const qrcode = require("qrcode")
+const qrcode = require("qrcode-terminal")
+const qrcodeData = require("qrcode")
 const Groq = require("groq-sdk")
 const axios = require("axios")
 const cheerio = require("cheerio")
+
+const app = express()
+let qrImageUrl = null
 
 // Initialize Groq AI
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
 })
 
+const puppeteerOptions = {
+  headless: true,
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu"
+  ]
+}
+
+if (process.platform === "linux") {
+  puppeteerOptions.executablePath = "/usr/bin/chromium"
+}
+
 // Create WhatsApp client
 const client = new Client({
   authStrategy: new LocalAuth(),
-  puppeteer: {
-    headless: true,
-    executablePath: "/usr/bin/chromium",
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu"
-    ]
-  }
+  puppeteer: puppeteerOptions
 });
 
 // Show QR code first time
 
-
 client.on("qr", async (qr) => {
-  console.log("QR received. Open this link to scan:");
+  console.log("QR received. You can scan it from the app's /qr page or your terminal.");
+  qrcode.generate(qr, { small: true })
 
-  const qrUrl = await qrcode.toDataURL(qr);
-  console.log(qrUrl);
-});
+  qrImageUrl = await qrcodeData.toDataURL(qr)
+  console.log("QR page available at /qr once the app is up")
+})
+
+app.get("/qr", (req, res) => {
+  if (!qrImageUrl) {
+    return res.send("QR code not generated yet. Please wait for the bot to start.")
+  }
+
+  res.send(`
+    <html>
+      <body style="display:flex;align-items:center;justify-content:center;height:100vh;background:#111;color:#fff;">
+        <div style="text-align:center;">
+          <h2>WhatsApp Web QR Code</h2>
+          <img src="${qrImageUrl}" alt="WhatsApp QR Code" />
+          <p>Scan this with WhatsApp on your phone.</p>
+        </div>
+      </body>
+    </html>
+  `)
+})
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log("QR server running on port " + (process.env.PORT || 3000))
+})
 
 // When bot is ready
 client.on("ready", () => {
