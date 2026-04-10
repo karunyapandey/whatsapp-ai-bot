@@ -11,6 +11,8 @@ const cheerio = require("cheerio")
 const app = express()
 let qrImageUrl = null
 
+const baseUrl = process.env.RAILWAY_SERVICE_URL || process.env.RAILWAY_STATIC_URL || process.env.APP_URL || process.env.HOST || null
+
 // Initialize Groq AI
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY
@@ -64,8 +66,16 @@ app.get("/qr", (req, res) => {
   `)
 })
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("QR server running on port " + (process.env.PORT || 3000))
+const port = process.env.PORT || 3000
+const qrPath = "/qr"
+const scanUrl = baseUrl ? `${baseUrl.replace(/\/$/, "")}${qrPath}` : `http://localhost:${port}${qrPath}`
+
+app.listen(port, () => {
+  console.log("QR server running on port " + port)
+  console.log("Scan QR at: " + scanUrl)
+  if (!baseUrl) {
+    console.log("If deployed, open your application URL in a browser and append /qr")
+  }
 })
 
 // When bot is ready
